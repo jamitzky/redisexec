@@ -1,0 +1,226 @@
+#!/bin/bash
+
+echo "###-###   redisexec start   ###-###"
+date
+
+export FAILURE=0
+######################################
+###param
+#defaults
+PRERUNFILE=NONE
+NODESPERTASK=1
+PROCSPERNODE=16
+FORCEMPI=0
+DEPSFILE=NONE
+SHOWDEPS=0
+TASKFILE="NONE"
+REDISPWD="NONE"
+ANALYZE=1
+OWNMPI=0
+######################################
+
+
+############################################
+#environment variables not to be changed by user
+export HOSTFILE=$7
+export KMP_TASK_AFFINITY=-1
+export REDISHOST=localhost
+export RPDIR=/lrz/sys/applications/redis/Rdeps2
+export JID=`echo $LOADL_STEP_ID | sed 's/\./_/g' | sed 's/-//g'`
+export REDISDIR=$HOME/redis_$JID
+############################################
+
+
+#parse arguments
+count=1
+while [[ $# > 1 ]]
+do
+key="$1"
+
+case $key in
+    -t|--taskfile)
+    TASKFILE="$2"
+    shift
+    ;;
+    -r|--redispwd)
+    REDISPWD="$2"
+    shift
+    ;;
+    -i|--initfile)
+    PRERUNFILE="$2"
+    shift
+    ;;
+    -n|--nodespertask)
+    NODESPERTASK="$2"
+    shift
+    ;;
+    -p|--procspernode)
+    PROCSPERNODE="$2"
+    shift
+    ;;
+     -f|--forcempi)
+    FORCEMPI="$2"
+    shift
+    ;;
+     -d|--depsfile)
+    DEPSFILE="$2"
+    shift
+    ;;
+    -s|--showdeps)
+    SHOWDEPS="$2"
+    shift
+    ;;
+    -a|--analyze)
+    ANALYZE="$2"
+    shift
+    ;;
+    -o|--ownmpi)
+    OWNMPI="$2"
+    shift
+    ;;
+    *)
+     modcount=$((${count} % 2))
+     if [ $modcount -eq 1 ]
+	 then
+         echo "Unknown argument ${1}." # unknown option
+     fi
+     shift        
+    ;;
+esac
+count=$((${count}+1))
+echo $count
+if [ $count -eq 101 ]
+then 
+break
+fi
+
+done
+
+
+if [ $TASKFILE == "NONE" ]
+then
+echo "You have to specify a file containing the tasks via argument taskfile."
+FAILURE=1
+fi
+
+if [  $REDISPWD == "NONE" ]
+then
+echo "You have to specify a redis password via argument redispwd."
+FAILURE=1
+fi
+
+
+######################################
+
+
+
+
+#####################################
+#environment variables set by user
+echo "ARGUMENTS"
+echo TASKFILE: $TASKFILE
+echo REDISPWD: $REDISPWD
+echo RPDIR: $RPDIR
+echo INITFILE: $PRERUNFILE
+echo NODESPERTASK: $NODESPERTASK
+echo PROCSPERNODE: $PROCSPERNODE
+echo FORCEMPI: $FORCEMPI
+echo DEPSFILE: $DEPSFILE
+echo SHOWDEPS: $SHOWDEPS
+echo ANALYZE: $ANALYZE
+echo OWNMPI: $OWNMPI
+echo JID: $JID
+echo REDISDIR: $REDISDIR
+#####################################
+
+#################################################
+#create folders
+mkdir $REDISDIR
+mkdir $REDISDIR/dependencies
+mkdir $REDISDIR/logs
+mkdir $REDISDIR/runtimes
+mkdir $REDISDIR/subhostfiles
+#################################################
+
+
+
+#echo $HOSTFILE
+#echo $TASKFILE
+#echo $REDISPWD
+
+####################################################################
+. /etc/profile
+. /etc/profile.d/modules.sh
+module unload mpi.ibm
+module load mpi.intel
+module load R/3.0
+#copy hostfile
+#rm $HOME/.redis/hostfile 2> /dev/null
+#rm $HOME/.redis/subhostfiles/hostf* 2> /dev/null
+#echo $LOADL_HOSTFILE
+#cat $LOADL_HOSTFILE
+cp $LOADL_HOSTFILE $REDISDIR/hostfile 2> /dev/null
+####################################################################
+
+#remove old logs
+#rm $HOME/.redis/logs/worker.log 2> /dev/null
+#rm $HOME/.redis/logs/master.log 2> /dev/null
+#rm $HOME/.redis/logs/spawn.log 2> /dev/null
+#rm $HOME/.redis/logs/analysis.log 2> /dev/null
+#rm $HOME/.redis/fail.RData 2> /dev/null
+#rm $HOME/.redis/runtimes/runtimes* 2> /dev/null
+#rm $HOME/.redis/dependencies/dependencies* 2> /dev/null
+#####process tasks
+
+if [ $SHOWDEPS -eq 1 ] ||  [ $SHOWDEPS -eq 2 ] || [ $DEPSFILE != "NONE" ]
+then
+echo "Illustrating dependencies. See \$REDISDIR/dependencies.pdf."
+R --quiet -f $HOME/.redis/redisexec/showdeps.r --args $TASKFILE $DEPSFILE $SHOWDEPS $RPDIR $REDISDIR >> $REDISDIR/logs/analysis.log 2>&1
+fi
+
+if [ $SHOWDEPS -eq 1 ]
+then
+echo "Creating graph of dependencies only."
+FAILURE=1
+fi
+
+echo FAILURE PRE: $FAILURE
+
+R --quiet -f $HOME/.redis/redisexec/masterstart.r --args $REDISHOST $REDISPWD $RPDIR $REDISDIR >> $REDISDIR/logs/master.log 2>&1
+
+if [ $? != 0 ]
+then
+FAILURE=1
+fi
+
+
+echo FAILURE PostMStart: $FAILURE
+
+R --quiet -f $HOME/.redis/redisexec/workerstartup.r --args $REDISHOST $REDISPWD $NODESPERTASK $PROCSPERNODE $RPDIR $REDISDIR $OWNMPI >> $REDISDIR/logs/spawn.log 2>&1
+
+if [ $? != 0 ]
+then
+FAILURE=1
+fi
+
+echo FAILURE PostWStart: $FAILURE
+
+R --quiet -f $HOME/.redis/redisexec/mastermain.r --args $REDISHOST $REDISPWD $PRERUNFILE $TASKFILE $FORCEMPI $NODESPERTASK $DEPSFILE $SHOWDEPS $RPDIR $REDISDIR $OWNMPI >> $REDISDIR/logs/master.log 2>&1 
+
+
+if [ $? != 0 ]
+then
+FAILURE=1
+fi
+
+echo FAILURE PostMMain: $FAILURE
+
+if [ $ANALYZE -eq 1 ]
+then
+echo "Analyzing runtimes. See \$HOME/.redis/runtimes.pdf."
+R --quiet -f $HOME/.redis/redisexec/analyze_times.r --args $REDISDIR >> $REDISDIR/logs/analysis.log 2>&1
+fi
+
+
+echo "###-###   redisexec end  ###-###"
+date
