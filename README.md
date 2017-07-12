@@ -1,2 +1,2 @@
 # redisexec
-A simple worker queue using redis as database
+A simple worker queue for R functions using redis as database
