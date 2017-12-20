@@ -5,7 +5,7 @@ Redisexec can be used in single node mode (default) or in MPI mode (used if 'nod
 
 Please note that redisexec will use one node for the scheduling manager. Thus, in MPI-mode, the number of nodes N (#@ node) has to be specified in the load leveler script so that (N-1) is divisible by 'nodespertask'.
 
-arguments
+# arguments
 
 Redisexec's arguments are the following (-short_form|--long_form):
 
@@ -49,7 +49,7 @@ to 0. Possible values are:
 in $HOME/.redis/runtimes/runtimes.pdf
  1: do not analyze the runtimes of the tasks in 'taskfile'
 
-taskfile
+# taskfile
 
 The only obligatory input file in redisexec is the task file containing the tasks to be run by the workers.
 
@@ -68,13 +68,15 @@ During task processing, redisexec will collapse this file to a single line while
 The expression '> /dev/null 2>&1' avoids that log-files get cluttered up with messages from the module system.
 
 You can find the actual example file for downloading below.
-depsfile
+
+# depsfile
 
 The last input file can optionally be passed in order to describe dependencies among tasks (argument 'depsfile'). In the current version redisexec accepts only a single file format for the dependency file which can cover any dependence structure.
 However, future versions will provide more convenient ways for specifying task dependencies.
 
 Currently, each task dependency has to be specified as an edge in a directed graph (as depicted in the flow diagram in the following box:
-dependency graph
+
+# dependency graph
 
 If the argument 'showdeps' of redisexec is set 1 (show dependency but do not run the tasks) or 2 (show dependencies and run the tasks), redisexec will
 create a pdf illustrating the task dependencies as a graph. In the graph, the tasks are represented as nodes whereby the dependencies are represented by directed edges originating from the required task and heading to the dependent task.
@@ -92,18 +94,19 @@ The expression '1;2' in the first line means that Task 1 in the 'tasksfile' is r
 You can fin the actual example file for downloading below.
 
 
-examples
+# examples
 
 In the following example, we will use redisex to perform 20 simulations using the application NAMD.
 
 The necessary files can be found below. The archive needs to be extracted to $HOME/redisexample if the example shall run without modifications (apart from adapting the redis password in the command lines below).
-Example 1: Single-Node-Mode without dependencies
+
+## Example 1: Single-Node-Mode without dependencies
 
 Example running the tasks in 'tasks.txt' with initfile 'pre.txt' in mpi-mode using 2 nodes (with 16 mpi-processes) for each task:
 
 redisexec --taskfile $HOME/redisexample/tasks.txt --redispwd pwd --initfile $HOME/redisexample/init.txt
 
-Example 2: MPI-Mode with dependencies
+## Example 2: MPI-Mode with dependencies
 
 Example running the tasks in 'tasks.txt' with initfile 'pre.txt' in mpi-mode using 2 nodes (with 16 mpi-processes) for each task:
 
@@ -133,7 +136,7 @@ If you want to update your redisexec to the newest version, it is enough to simp
 
  cp -r /lrz/sys/applications/redis/redislrz/redisexec $HOME/.redis/redisexec
 
-Runtime Analysis
+# Runtime Analysis
 
 If redisexec's argument 'analyze' is set to 1, redisexec will create a pdf at $HOME/.redisexec/runtimes/runtimes.pdf which show the runtimes of the different tasks and their order of termination:
 
@@ -149,7 +152,7 @@ The plot in the upper right corner shows the distribution of the tasks among the
 Finally, in the lower right plot, we can see the distribution of the runtimes grouped by the worker groups. In this case, differences among worker groups are really neglibile. However, if certain worker groups needed clearly more time for the same computations, this would indicate a problem on those hosts.
 
 
-REDISDIR
+# REDISDIR
 
 The folder $REDISDIR contains all data created by the redisexec framework within a specific run.
 
