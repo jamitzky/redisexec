@@ -114,7 +114,7 @@ redisexec --taskfile $HOME/redisexample/tasks.txt --redispwd pwd
 --initfile $HOME/redisexample/init.txt --nodespertask 2 --procspernode 16 
 --depsfile $HOME/redisexample/dependencies.txt
 
-installation
+# installation
 
 The newest version of redisexec can be found in '/lrz/sys/applications/redis/redislrz'.
 
@@ -130,7 +130,8 @@ export PATH=$PATH:$HOME/.redis/redisexec
 Now, you can invoke redisexec directly by the command 'redisexec' instead of '$HOME/.redis/redisexec'.
 
 This is it.
-Updating redisexec
+
+# Updating redisexec
 
 If you want to update your redisexec to the newest version, it is enough to simply copy the folder 'redisexec' in '/lrz/sys/applications/redis/redislrz' using:
 
