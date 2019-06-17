@@ -7,47 +7,44 @@ Please note that redisexec will use one node for the scheduling manager. Thus, i
 
 # arguments
 
-    Redisexec's arguments are the following (-short_form|--long_form):
-
-    (all arguments except 'taskfile' and 'redispwd' are optional)
+Redisexec's arguments are the following (-short_form|--long_form):
+(all arguments except 'taskfile' and 'redispwd' are optional)
 
     -t|--taskfile: path to the file specifying the tasks (one task per line); no default
 
     -r|--redispwd: password of your redis-server; no default
 
--i|--initfile: either NONE or the path file containing command lines that are run before 
-execution of each task or NONE (if not needed), defaults to NONE.
- Please note that the file will be collapsed to to a single line while separating all 
-scriptlines by ';'
+    -i|--initfile: either NONE or the path file containing command lines that are run before 
+    execution of each task or NONE (if not needed), defaults to NONE.
+    Please note that the file will be collapsed to to a single line while separating all scriptlines by ';'
 
--n|--nodespertask: non-negative integer, specifying the number of nodes that are used for 
-each task specified in 'taskfile'. If set to a value >1 redisexec
- will try to execute the tasks in $TASKFILE as MPI programmes by building mpi hostfiles 
-with 'nodespertask' hosts in each host file, defaults to 1
+    -n|--nodespertask: non-negative integer, specifying the number of nodes that are used for 
+    each task specified in 'taskfile'. If set to a value >1 redisexec
+    will try to execute the tasks in $TASKFILE as MPI programmes by building mpi hostfiles 
+    with 'nodespertask' hosts in each host file, defaults to 1
 
--p|--procspernode: integer, specifying the number of processes used on each node; 
-defaults to 16 and will be ignored in non-mpi-mode
+    -p|--procspernode: integer, specifying the number of processes used on each node; 
+    defaults to 16 and will be ignored in non-mpi-mode
 
--f|--forcempi: force mpi-mode. redisexec will run the tasks in 'taskfile' using mpi 
-even if 'nodespertask'=1. defaults to 0 (not forced)
+    -f|--forcempi: force mpi-mode. redisexec will run the tasks in 'taskfile' using mpi 
+    even if 'nodespertask'=1. defaults to 0 (not forced)
 
--d|--depsfile: path to a file specifying dependencies among the tasks in 'taskfile', 
-defaults to NONE (no dependencies). This file has the specifies dependencies as 
-edges INTEGER;INTEGER,one dependency per line. The integers correspond to the line numbers 
-in the taskfile
+    -d|--depsfile: path to a file specifying dependencies among the tasks in 'taskfile', 
+    defaults to NONE (no dependencies). This file has the specifies dependencies as 
+    edges INTEGER;INTEGER,one dependency per line. The integers correspond to the line numbers 
+    in the taskfile
 
--s|--showdeps:integer, indicating whether a graph illustrating the dependencies in 
-'depsfile' shall be illustrated in a pdf, defaults to 0.
- The pdf will be placed in $HOME/.redis/dependencies/depsgraph.pdf. Possible values are:
- 0: do not illustrate dependencies
- 1: illustrate dependencies but do not run the actual computations
- 2: illustrate dependencies in additional to running the actual computations
+    -s|--showdeps:integer, indicating whether a graph illustrating the dependencies in 
+    'depsfile' shall be illustrated in a pdf, defaults to 0.
+     The pdf will be placed in $HOME/.redis/dependencies/depsgraph.pdf. Possible values are:
+     0: do not illustrate dependencies
+     1: illustrate dependencies but do not run the actual computations
+     2: illustrate dependencies in additional to running the actual computations
 
--a|--analyze:integer, indicating whether a graph illustrating the dependencies, defaults 
-to 0. Possible values are:
- 0: analyze the run times of the tasks in 'taskfile'and create a plot 
-in $HOME/.redis/runtimes/runtimes.pdf
- 1: do not analyze the runtimes of the tasks in 'taskfile'
+    -a|--analyze:integer, indicating whether a graph illustrating the dependencies, defaults 
+    to 0. Possible values are:
+    0: analyze the run times of the tasks in 'taskfile'and create a plot in $HOME/.redis/runtimes/runtimes.pdf
+    1: do not analyze the runtimes of the tasks in 'taskfile'
 
 # taskfile
 
@@ -104,38 +101,31 @@ The necessary files can be found below. The archive needs to be extracted to $HO
 
 Example running the tasks in 'tasks.txt' with initfile 'pre.txt' in mpi-mode using 2 nodes (with 16 mpi-processes) for each task:
 
-redisexec --taskfile $HOME/redisexample/tasks.txt --redispwd pwd --initfile $HOME/redisexample/init.txt
+    redisexec --taskfile $HOME/redisexample/tasks.txt --redispwd pwd --initfile $HOME/redisexample/init.txt
 
 ## Example 2: MPI-Mode with dependencies
 
 Example running the tasks in 'tasks.txt' with initfile 'pre.txt' in mpi-mode using 2 nodes (with 16 mpi-processes) for each task:
 
-redisexec --taskfile $HOME/redisexample/tasks.txt --redispwd pwd 
---initfile $HOME/redisexample/init.txt --nodespertask 2 --procspernode 16 
---depsfile $HOME/redisexample/dependencies.txt
+    redisexec --taskfile $HOME/redisexample/tasks.txt --redispwd pwd 
+    --initfile $HOME/redisexample/init.txt --nodespertask 2 --procspernode 16 
+    --depsfile $HOME/redisexample/dependencies.txt
 
 # installation
 
-The newest version of redisexec can be found in '/lrz/sys/applications/redis/redislrz'.
 
-For first use, it is recommended to copy the complete folder '/lrz/sys/applications/redis/redislrz' to '$HOME/.redis' since redisexec assumes a certain directory hierarchy inside $HOME/.redis.
+Download the files from the github repository by:
 
-cp -r /lrz/sys/applications/redis/redislrz $HOME/.redis
+    git clone https://github.com/jamitzky/redisexec
 
-As a next step, you should replace the password in $HOME/.redis/redis.conf (search for 'requirepass') by a password of your choice.
+As a next step, you should replace the password in $HOME/redisexec/redis.conf (search for 'requirepass') by a password of your choice.
 
-For convenience, you can add the redisexec-folder (which can be found in your $HOME/.redis) to your $PATH by including the following line in your $HOME/.bashrc:
-export PATH=$PATH:$HOME/.redis/redisexec
+For convenience, you can add the redisexec-folder (which can be found in your $HOME/redisexec) to your $PATH by including the following line in your $HOME/.bashrc:
+export PATH=$PATH:$HOME/redisexec
 
-Now, you can invoke redisexec directly by the command 'redisexec' instead of '$HOME/.redis/redisexec'.
+Now, you can invoke redisexec directly by the command 'redisexec' instead of '$HOME/redisexec'.
 
 This is it.
-
-# Updating redisexec
-
-If you want to update your redisexec to the newest version, it is enough to simply copy the folder 'redisexec' in '/lrz/sys/applications/redis/redislrz' using:
-
- cp -r /lrz/sys/applications/redis/redislrz/redisexec $HOME/.redis/redisexec
 
 # Runtime Analysis
 
@@ -163,4 +153,4 @@ The value of $REDISDIR is determined during the job and is composed in the follo
 $HOME/redis_$JID
 whereby $JID is the $LOADL_STEP_ID (basically the loadleveler job identifier) with '.' and '-' removed.
 
-(author Ch. Bernau)
+(author Ch. Bernau and F. Jamitzky)
