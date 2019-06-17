@@ -7,13 +7,13 @@ Please note that redisexec will use one node for the scheduling manager. Thus, i
 
 # arguments
 
-Redisexec's arguments are the following (-short_form|--long_form):
+    Redisexec's arguments are the following (-short_form|--long_form):
 
-(all arguments except 'taskfile' and 'redispwd' are optional)
+    (all arguments except 'taskfile' and 'redispwd' are optional)
 
--t|--taskfile: path to the file specifying the tasks (one task per line); no default
+    -t|--taskfile: path to the file specifying the tasks (one task per line); no default
 
--r|--redispwd: password of your redis-server; no default
+    -r|--redispwd: password of your redis-server; no default
 
 -i|--initfile: either NONE or the path file containing command lines that are run before 
 execution of each task or NONE (if not needed), defaults to NONE.
